@@ -1,3 +1,5 @@
+from comet_ml import Experiment
+
 from unityagents import UnityEnvironment
 import numpy as np
 import random
@@ -25,7 +27,9 @@ print('Number of agents:', num_agents)
 states = env_info.vector_observations                  # get the current state (for each agent)
 agent = Agent(state_size=states.shape[1], action_size=brain.vector_action_space_size, random_seed=10)
 
-def ddpg(n_episodes=2000, max_t=700):
+experiment = Experiment(project_name="reacher")
+
+def ddpg(n_episodes=2000, max_t=70):
     scores_deque = deque(maxlen=100)
     scores_global = []
     max_score = -np.Inf
@@ -62,6 +66,9 @@ def ddpg(n_episodes=2000, max_t=700):
         os.system(mqtt_cmd +  "episode -m " + str(i_episode))
         os.system(mqtt_cmd + "score -m {:.2f}".format(score))
         os.system(mqtt_cmd + "average -m {:.2f}".format(np.mean(score_average)))
+        experiment.log_current_epoch(i_episode)
+        experiment.log_metric("score", score, step=i_episode)
+        experiment.log_metric("score_average", score_average, step=i_episode)
 
     return scores_global
 
