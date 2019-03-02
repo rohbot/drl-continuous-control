@@ -12,9 +12,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Normal
-#from mqtt_writer import SummaryWriter
 from tensorboardX import SummaryWriter
-
 from tqdm import tqdm
 
 ENV_FILE            = "./Reacher_Linux_NoVis/Reacher.x86_64"
@@ -29,9 +27,7 @@ ENTROPY_BETA        = 0.001
 PPO_STEPS           = 2048
 MINI_BATCH_SIZE     = 64
 PPO_EPOCHS          = 10
-TEST_EPOCHS         = 1
-NUM_TESTS           = 1
-TARGET_REWARD       = 31
+TARGET_REWARD       = 30
 
 class ActorCritic(nn.Module):
     def __init__(self, num_inputs, num_outputs, hidden_size, std=0.0):
@@ -56,9 +52,6 @@ class ActorCritic(nn.Module):
         std   = self.log_std.exp().expand_as(mu)
         dist  = Normal(mu, std)
         return dist, value
-
-
-
 
     
 def test_env(env, model, device):
@@ -199,6 +192,8 @@ if __name__ == "__main__":
     #print(state)
     early_stop = False
     all_scores = []
+    averages = []
+
     
     for _ in tqdm(range(300)):
 
@@ -253,32 +248,33 @@ if __name__ == "__main__":
         #writer.add_scalar("average", np.mean(returns), frame_idx)
     
 
-        if train_epoch % TEST_EPOCHS == 0:
-            test_reward = np.mean([test_env(env, model, device) for _ in range(NUM_TESTS)])
-            
-            writer.add_scalar("score", test_reward, frame_idx)
-            all_scores.append(test_reward)
-            loge = '"Episode %s. reward: %s"' % (train_epoch, test_reward )
-            print(loge)
-            os.system("mosquitto_pub -h 10.0.0.1 -t drl/log -m " + loge )
-    
-            # Save a checkpoint every time we achieve a best reward
-            if best_reward is None or best_reward < test_reward:
-                if best_reward is not None:
-                    writer.add_scalar("average", test_reward, frame_idx)
-                    print("Best reward updated: %.3f -> %.3f" % (best_reward, test_reward))
-                    name = "%s_best_%+.3f_%d.dat" % ("ppo", test_reward, frame_idx)
-                    fname = os.path.join('.', 'checkpoints', name)
-                    torch.save(model.state_dict(), fname)
-                best_reward = test_reward
-            if test_reward > TARGET_REWARD: 
-                early_stop = True
-                break
-                
+        test_reward = test_env(env, model, device) 
+        all_scores.append(test_reward)
+        last_average = np.mean(np.array(all_scores[-100:])) if len(all_scores) > 100 else np.mean(np.array(all_scores))
+        averages.append(last_average)
+        writer.add_scalar("score", test_reward, frame_idx)
+        writer.add_scalar("average", last_average, frame_idx)
+
+        log_entry = 'Episode %s. reward: %.3f ave: %.3f' % (train_epoch, test_reward, last_average)
+        print(log_entry)
+
+        # Save a checkpoint every time we achieve a best reward
+        if best_reward is None or best_reward < last_average:
+            if best_reward is not None:
+                writer.add_scalar("best_reward", test_reward, frame_idx)
+                print("Best reward updated: %.3f -> %.3f" % (best_reward, test_reward))
+                name = "%s_best_%+.3f_%d.dat" % ("ppo", test_reward, frame_idx)
+                fname = os.path.join('.', 'checkpoints', name)
+                torch.save(model.state_dict(), fname)
+            best_reward = test_reward
+        if last_average > TARGET_REWARD:
+            print("Solved Enviroment in %s epochs" % train_epoch)
+            early_stop = True
+            break
+
     
     
     # Save scores to file to graph later            
     timestamp =  str(int(time.time()))
     pickle.dump( all_scores, open( "scores/all_scores_"+timestamp+".p", "wb" ) )
-    os.system("mosquitto_pub -h 10.0.0.1 -t test -m 'Finished in %s episodes' " % train_epoch )
     
