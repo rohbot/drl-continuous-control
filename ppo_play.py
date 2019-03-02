@@ -79,7 +79,7 @@ if __name__ == "__main__":
     num_outputs = brain.vector_action_space_size
 
     model = ActorCritic(num_inputs, num_outputs, HIDDEN_SIZE).to(device)
-    model.load_state_dict(torch.load("models/ppo_best_30.pth"))
+    model.load_state_dict(torch.load("models/ppo_trained.pth"))
     reward = test_env(env, model, device)
     print('reward: %s' % ( reward))
 
