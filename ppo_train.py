@@ -12,7 +12,9 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Normal
-from mqtt_writer import SummaryWriter
+#from mqtt_writer import SummaryWriter
+from tensorboardX import SummaryWriter
+
 from tqdm import tqdm
 
 ENV_FILE            = "./Reacher_Linux_NoVis/Reacher.x86_64"
@@ -29,7 +31,7 @@ MINI_BATCH_SIZE     = 64
 PPO_EPOCHS          = 10
 TEST_EPOCHS         = 1
 NUM_TESTS           = 1
-TARGET_REWARD       = 30
+TARGET_REWARD       = 31
 
 class ActorCritic(nn.Module):
     def __init__(self, num_inputs, num_outputs, hidden_size, std=0.0):
@@ -117,7 +119,7 @@ def ppo_update(frame_idx, states, actions, log_probs, returns, advantages, clip_
     sum_loss_total = 0.0
 
     # PPO EPOCHS is the number of times we will go through ALL the training data to make updates
-    for _ in range(PPO_EPOCHS):
+    for _ in (range(PPO_EPOCHS)):
         # grabs random mini-batches several times until we have covered all data
         for state, action, old_log_probs, return_, advantage in ppo_iter(states, actions, log_probs, returns, advantages):
             dist, value = model(state)
@@ -159,9 +161,12 @@ def ppo_update(frame_idx, states, actions, log_probs, returns, advantages, clip_
 if __name__ == "__main__":
     
     
+    ts = str(int(time.time()))
+    writer = SummaryWriter(comment="ppo_" + ts)
+    #writer.reset()
+    os.system("mosquitto_pub -h 10.0.0.1 -t drl/log -m 'New Run: '" + ts)
+    #os.system("mosquitto_pub -h 10.0.0.1 -t test -m 'New Run:' + ts")
     
-    writer = SummaryWriter(comment="ppo_" + str(int(time.time())))
-    writer.reset()
     # Autodetect CUDA
     use_cuda = torch.cuda.is_available()
     device   = torch.device("cuda" if use_cuda else "cpu")
@@ -193,8 +198,9 @@ if __name__ == "__main__":
     #state = states[0]
     #print(state)
     early_stop = False
-
-    while not early_stop:
+    all_scores = []
+    
+    for _ in tqdm(range(300)):
 
         log_probs = []
         values    = []
@@ -203,7 +209,7 @@ if __name__ == "__main__":
         rewards   = []
         masks     = []
 
-        for _ in range(PPO_STEPS):
+        for _ in (range(PPO_STEPS)):
             state = torch.FloatTensor(state).to(device)
             dist, value = model(state)
 
@@ -249,8 +255,13 @@ if __name__ == "__main__":
 
         if train_epoch % TEST_EPOCHS == 0:
             test_reward = np.mean([test_env(env, model, device) for _ in range(NUM_TESTS)])
+            
             writer.add_scalar("score", test_reward, frame_idx)
-            print('Frame %s. reward: %s' % (frame_idx, test_reward))
+            all_scores.append(test_reward)
+            loge = '"Episode %s. reward: %s"' % (train_epoch, test_reward )
+            print(loge)
+            os.system("mosquitto_pub -h 10.0.0.1 -t drl/log -m " + loge )
+    
             # Save a checkpoint every time we achieve a best reward
             if best_reward is None or best_reward < test_reward:
                 if best_reward is not None:
@@ -260,4 +271,14 @@ if __name__ == "__main__":
                     fname = os.path.join('.', 'checkpoints', name)
                     torch.save(model.state_dict(), fname)
                 best_reward = test_reward
-            if test_reward > TARGET_REWARD: early_stop = True
+            if test_reward > TARGET_REWARD: 
+                early_stop = True
+                break
+                
+    
+    
+    # Save scores to file to graph later            
+    timestamp =  str(int(time.time()))
+    pickle.dump( all_scores, open( "scores/all_scores_"+timestamp+".p", "wb" ) )
+    os.system("mosquitto_pub -h 10.0.0.1 -t test -m 'Finished in %s episodes' " % train_epoch )
+    
