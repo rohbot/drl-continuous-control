@@ -3,7 +3,7 @@
 This project implements a reinforcement learning agent to controls a simulation of a robotic arm. The double-jointed arm can move to target locations. A reward of +0.1 is provided for each step that the agent's hand is in the goal location. Thus, the goal of the agent is to maintain its position at the target location for as many time steps as possible. 
 The objective is  to an average score of +30 (over 100 consecutive episodes, and over all agents). 
 
-The agents is trained using Proximal Policy Optimization (PPO) Algorithm based on the paper released by [OpenAI](https://blog.openai.com/openai-baselines-ppo/)
+The agents is trained using Proximal Policy Optimization (PPO) Algorithm based on the paper released by [OpenAI](https://blog.openai.com/openai-baselines-ppo/).
 
 ## Implementation
 
@@ -16,7 +16,7 @@ The implementation split into a few smaller modules:
 
 ## Learning Algorithm
 
-The agent in this project utilised code for implementing the PPO alogirthm as outlined in the [RL-Adventure-2] repo (https://github.com/higgsfield/RL-Adventure-2/blob/master/3.ppo.ipynb).	
+The agent in this project utilised code for implementing the PPO alogirthm as outlined in the [RL-Adventure-2](https://github.com/higgsfield/RL-Adventure-2/blob/master/3.ppo.ipynb) github repo.	
 
 
 The agent comprises of a pair of neural networks, the actor and the critic networks.
@@ -63,31 +63,8 @@ The initial parameters were set to the same values as in [Deep_Q_Network_Solutio
 
 This leads to an agent that can achieve an average score of 30 over 100 episodes after 467 episodes
 
-![Untuned Params](data/images/untuned-params.png "Untuned Parameters")
+![Plot of Rewards](ppo-30.png)
 
-By adjusting some of the hyperparameters the agent trained significantly faster.
-
-	n_episodes=1000			# number of episodes		 
-	max_t=10000 			# max number of timesteps per episode
-	eps_start=0.5			# starting epsilon value
-	eps_end=0.01			# end epsilon value
-	eps_decay=0.98 			# epsilon decay value
-	BUFFER_SIZE = int(1e6)  # replay buffer size
-	BATCH_SIZE = 128        # minibatch size
-	GAMMA = 0.99            # discount factor
-	TAU = 1e-3              # for soft update of target parameters
-	LR = 0.0001             # learning rate 
-	UPDATE_EVERY = 2        # how often to update the network
-
-The agent achieves a score of 13.01 after 163 episodes
-
-![Tuned Params](data/images/episodes.png "Tuned Parameters")
-
-
-By increasing the number of timesteps per episode it gave the agents a greater chance of obtaining a higher score per episode
-Reducing the epsilon starting values to reduce the amount of time an agent picks moves at random initially
-The BUFFER_SIZE and BATCH_SIZE were increased to allow the networks to train on more data quickly.
-Also the learning rate and UPDATE_EVERY were decreased to allow faster learning now that there is more data to be trained on  
 
 
 ## Results
@@ -98,6 +75,6 @@ Also the learning rate and UPDATE_EVERY were decreased to allow faster learning 
 ## Ideas for Future Work
 ---
 
-* Implement improvements to DQN algorithm as suggested in  [Rainbow: Combining Improvements in Deep Reinforcement Learning] paper(https://arxiv.org/abs/1710.02298) [Github code](https://github.com/Kaixhin/Rainbow)
+* Implement an evolutionary system or genetic algorithm based on this [implementation](https://github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On/tree/master/Chapter16). I initally modified this code to run with the Reacher environment [ga_train.py](archive/ga_train.py). However even after several days of training it failed to converge so went on to implement this PPO algorithm. Given more time I would like to delve deeper into this GA/ES approach with more tweaking of learning rates and possibly a better implemetation of cross-over and parent selection.
 
-* Better tuning of hyperparameters, at present it was done in a very trial and error manner and better results may be achieved using something like XGBoost or possibly even [Particle Swarm Optimization](https://medium.com/next-level-german-engineering/hyperparameter-optimisation-utilising-a-particle-swarm-approach-5711957b3f3f)  
+* Implement a Model-Based RL agent that uses Particle Swarm Optimizatiion [Reinforcement Learning with Particle Swarm Optimization Policy PSO-P in Continuous State and Action Spaces](https://pdfs.semanticscholar.org/d0c4/9a9ed109cb8573217a9a0affbad7881b77a4.pdf)
