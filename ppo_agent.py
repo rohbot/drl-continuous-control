@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Normal
-
+from tqdm import tqdm
 from model import ActorCritic
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -97,7 +97,7 @@ class Agent():
 
 	def ppo_update(self,  states, actions, log_probs, returns, advantages):
 		
-		for _ in range(self.ppo_epochs):
+		for _ in tqdm(range(self.ppo_epochs)):
 			for state, action, old_log_probs, return_, advantage in self.ppo_iter(states, actions, log_probs, returns, advantages):
 				dist, value = self.model(state)
 				entropy = dist.entropy().mean()
@@ -131,7 +131,7 @@ class Agent():
 		env_info = self.env.reset(train_mode=True)[self.brain_name]
 		state = env_info.vector_observations
 
-		for _ in (range(self.ppo_steps)):
+		for _ in tqdm(range(self.ppo_steps)):
 			state = torch.FloatTensor(state).to(device)
 			dist, value = self.model(state)
 
