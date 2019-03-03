@@ -1,3 +1,4 @@
+
 import os
 import random
 import numpy as np
@@ -46,7 +47,7 @@ if __name__ == "__main__":
         log_entry = 'Episode %s. reward: %.3f ave: %.3f' % (agent.episode, test_reward, last_average)
         print(log_entry)
         
-        if best_reward is None or best_reward < last_average:
+        if best_reward is None or best_reward < test_reward:
             if best_reward is not None:
                 print("Best reward updated: %.3f -> %.3f" % (best_reward, test_reward))
                 name = "%s_best_%+.3f_%d.dat" % ("ppo", test_reward, agent.episode)
