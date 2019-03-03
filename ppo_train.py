@@ -5,8 +5,8 @@ import numpy as np
 from unityagents import UnityEnvironment
 import pickle
 import time
-
-
+from model import ActorCritic
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -29,29 +29,6 @@ MINI_BATCH_SIZE     = 64
 PPO_EPOCHS          = 10
 TARGET_REWARD       = 30
 
-class ActorCritic(nn.Module):
-    def __init__(self, num_inputs, num_outputs, hidden_size, std=0.0):
-        super(ActorCritic, self).__init__()
-        
-        self.critic = nn.Sequential(
-            nn.Linear(num_inputs, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, 1)
-        )
-        
-        self.actor = nn.Sequential(
-            nn.Linear(num_inputs, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, num_outputs),
-        )
-        self.log_std = nn.Parameter(torch.ones(1, num_outputs) * std)
-        
-    def forward(self, x):
-        value = self.critic(x)
-        mu    = self.actor(x)
-        std   = self.log_std.exp().expand_as(mu)
-        dist  = Normal(mu, std)
-        return dist, value
 
     
 def test_env(env, model, device):
@@ -157,7 +134,7 @@ if __name__ == "__main__":
     ts = str(int(time.time()))
     writer = SummaryWriter(comment="ppo_" + ts)
     #writer.reset()
-    os.system("mosquitto_pub -h 10.0.0.1 -t drl/log -m 'New Run: '" + ts)
+    #os.system("mosquitto_pub -h 10.0.0.1 -t drl/log -m 'New Run: '" + ts)
     #os.system("mosquitto_pub -h 10.0.0.1 -t test -m 'New Run:' + ts")
     
     # Autodetect CUDA
@@ -277,4 +254,10 @@ if __name__ == "__main__":
     # Save scores to file to graph later            
     timestamp =  str(int(time.time()))
     pickle.dump( all_scores, open( "scores/all_scores_"+timestamp+".p", "wb" ) )
-    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    plt.plot(np.arange(len(scores)), scores)
+    plt.ylabel('Score')
+    plt.xlabel('Episode #')
+    #plt.show()
+    plt.savefig('ppo-30.png')
