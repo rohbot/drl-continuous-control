@@ -253,11 +253,5 @@ if __name__ == "__main__":
     
     # Save scores to file to graph later            
     timestamp =  str(int(time.time()))
-    pickle.dump( all_scores, open( "scores/all_scores_"+timestamp+".p", "wb" ) )
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    plt.plot(np.arange(len(scores)), scores)
-    plt.ylabel('Score')
-    plt.xlabel('Episode #')
-    #plt.show()
-    plt.savefig('ppo-30.png')
+    pickle.dump( all_scores, open( "all_scores_"+timestamp+".p", "wb" ) )
+    

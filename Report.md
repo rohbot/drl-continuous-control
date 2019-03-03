@@ -19,34 +19,16 @@ The implementation split into a few smaller modules:
 The agent in this project utilised code for implementing the PPO alogirthm as outlined in the [RL-Adventure-2](https://github.com/higgsfield/RL-Adventure-2/blob/master/3.ppo.ipynb) github repo.	
 
 
-The agent comprises of a pair of neural networks, the actor and the critic networks.
+The agent comprises of a pair of neural networks, the actor and the critic networks. 
 
  Each network has the same architecture of 3 fully connected layers with ReLu activation on the first two layers. It also implements a replay buffer to store the experiences of an action in the enviroment, that is later sampled in batches to train the neural nets.
 
 
-1. It starts by initializing the replay buffer and inital weights for the neural networks.
-1. For each episode within the max_episodes given it:
-	1. Resets Environment
-	1. Gets current state from enviroment
-	For each step in maximum number of timesteps per episode:
-		1. Picks an action using state using an epslion-greedy algorithm
-		1. Executes this action in the enviroments to obtain rewards, next_state, done
-		1. Stores this experience in the replay buffer
-		If timestep matches EVERY_UPDATE 
-			1. Sample random batch of experiences from replay buffer
-			1. Get predicted Q values from target network using next_states
-			1. Compute target for current states using rewards + (gamma * Q_targets_next * (1 - dones))
-			1. Get expected values from local model using states and actions
-			1. Compute MSE Loss with expected values and target values
-			1. Minimize loss using Adam Optimization, backprop and step
-			1. Perform soft update of local network with target network and TAU value
-	1. Keep looping until the average score over last 100 episodes >= 13
-		1. Save weights of local network to file 
 
 
-### Hyperparameter Tuning
+### Hyperparameters
 
-The initial parameters were set to the same values as in [Deep_Q_Network_Solution.ipynb](https://github.com/udacity/deep-reinforcement-learning/blob/master/dqn/solution/Deep_Q_Network_Solution.ipynb)
+The initial parameters were set to the same values as in [3.ppo.ipynb](https://github.com/higgsfield/RL-Adventure-2/blob/master/3.ppo.ipynb)
 
 	HIDDEN_SIZE         = 512
 	LEARNING_RATE       = 3e-4
@@ -63,13 +45,9 @@ The initial parameters were set to the same values as in [Deep_Q_Network_Solutio
 
 This leads to an agent that can achieve an average score of 30 over 100 episodes after 153 episodes
 
-![Plot of Rewards](ppo-training.png)
-
-
-
 ## Results
 
---TODO
+![Plot of Rewards](ppo-training.png)
 
 
 ## Ideas for Future Work
