@@ -41,7 +41,7 @@ Compared to other policy gradient methods, PPO uses a unique objective function 
 	PPO_EPOCHS          = 10
 	TARGET_REWARD       = 30
 
-This leads to an agent that can achieve an average score of 30 over 100 episodes after 153 episodes
+This leads to an agent that can achieve an average score of 30 over 100 episodes after 173 episodes
 
 ## Results
 
