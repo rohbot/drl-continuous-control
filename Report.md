@@ -12,7 +12,7 @@ The implementation split into a few smaller modules:
 * model.py - Neural Network model implemented with PyTorch
 * ppo_agent.py - PPO agent implementation as described in [paper](https://arxiv.org/abs/1707.06347) mentioned above
 * train.py - imports all required modules and allows the enviroment to be explored and the agent trained
-* play.py - Runs an Agent using pre-trained weights from ppo_train.py
+* play.py - Runs an Agent using pre-trained weights from train.py
 
 ## Learning Algorithm
 
@@ -20,14 +20,23 @@ Proximal Policy Optimization was chosen to train the agent because it has been [
 
 The agent in this project utilised code for implementing the PPO alogirthm found in the RL-Adventure-2 [notebook](https://github.com/higgsfield/RL-Adventure-2/blob/master/3.ppo.ipynb).	
 
-In this implementation the agent model comprises of a pair of neural networks, the actor and the critic networks. The actor network is 3 fully connected layers with ReLu activation on the first two layers. The output of the actor network is normal distribution 
+In this implementation the agent model comprises of a pair of neural networks, the actor and the critic networks. The actor network is 3 fully connected layers with ReLu activation on the first two layers. The output of the actor network is normal distribution of the action space. The critic has a similar configuration to the actor but it outputs a single value. The actor controls how the agent behaves and the critic measures how good the action taken is.
 
-
-Compared to other policy gradient methods, PPO uses a unique objective function that uses the ratio between old and new policies, scaled by advantages and clipped to limit the size of the update. Mathematically it is defined as:   
+Compared to other policy gradient methods, PPO has a unique objective function that uses the ratio between old and new policies, scaled by advantages and clipped to limit the size of the update. Mathematically it is defined as:   
 ![PPO Objective](data/images/ppo-co.png)
 
 [Source](http://rail.eecs.berkeley.edu/deeprlcourse-fa17/f17docs/lecture_13_advanced_pg.pdf)
 
+1. Collect a batch of N transistions from environment given by PPO_STEPS parameter
+1. Calculate returns for the using Generalized Advantage Estimation
+1. Calculate advantage = returns - values
+1. For e epochs given by PPO_EPOCHS parameter
+   1. sample enough random mini-batches to cover all data
+   1. pass state into network, obtain action, value, entropy and new_log_probs
+   1. calculate surrogate policy loss and MSE value loss
+   1. backpropogate total loss through network 
+1. Repeat steps 1-4 until is agent solves environment
+1. If agent fails to solve enviroment, tune hyperparameters and repeat steps 1-5
 
 ### Hyperparameters
 
@@ -41,7 +50,7 @@ Compared to other policy gradient methods, PPO uses a unique objective function 
 	PPO_EPOCHS          = 10
 	TARGET_REWARD       = 30
 
-This leads to an agent that can achieve an average score of 30 over 100 episodes after 173 episodes
+This leads to an agent that can achieve an average score of 30 over 100 episodes after 146 episodes
 
 ## Results
 
@@ -51,7 +60,7 @@ This leads to an agent that can achieve an average score of 30 over 100 episodes
 ## Ideas for Future Work
 ---
 
-* Better tuning of hyperparameters. 
+* Better tuning of hyperparameters, using different activation function for actor such a TanH
 
 * Implement an evolutionary system or genetic algorithm based on this [implementation](https://github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On/tree/master/Chapter16). I initally modified this code to run with the Reacher environment [ga_train.py](archive/ga_train.py). However even after several days of training it failed to converge so went on to implement this PPO algorithm. Given more time I would like to delve deeper into this GA/ES approach with more tweaking of learning rates and possibly a better implemetation of cross-over and parent selection.
 

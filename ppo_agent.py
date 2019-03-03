@@ -17,7 +17,7 @@ class Agent():
 	
 	def __init__(self, env, hidden_size=512, lr=3e-4, gamma=0.99, tau=.95, 
 		ppo_steps=20, ppo_epochs=10, mini_batch_size=5, 
-		ppo_clip=0.2, gradient_clip=5):
+		ppo_clip=0.2):
 		"""Initialize an Agent object.
 
 		Params
@@ -46,7 +46,6 @@ class Agent():
 		self.mini_batch_size  = mini_batch_size
 		self.ppo_epochs = ppo_epochs
 		self.ppo_clip = ppo_clip
-		self.gradient_clip = gradient_clip
 		
 		self.frame_idx = 0
 		self.episode = 0
@@ -80,7 +79,9 @@ class Agent():
 		
 
 	def compute_gae(self, next_value, rewards, masks, values):
-
+		"""
+		Computes Generalized Advantage Estimation 
+		"""
 		values = values + [next_value]
 		gae = 0
 		returns = []
@@ -91,6 +92,9 @@ class Agent():
 		return returns
 
 	def ppo_iter(self, states, actions, log_probs, returns, advantage):
+		"""
+		Sample random mini-batches and return reversed order
+		"""
 		batch_size = states.size(0)
 		for _ in range(batch_size // self.mini_batch_size):
 			rand_ids = np.random.randint(0, batch_size, self.mini_batch_size)
@@ -98,31 +102,42 @@ class Agent():
 			
 
 	def ppo_update(self,  states, actions, log_probs, returns, advantages):
-		
+		"""
+		For each PPO epoch, generate mini-batch, calculate the surrogate policy loss and MSE value loss then backpropogate
+		"""
 		for _ in tqdm(range(self.ppo_epochs)):
+			
+			# Generate mini-batch of trajectories	
 			for state, action, old_log_probs, return_, advantage in self.ppo_iter(states, actions, log_probs, returns, advantages):
+				
+				#pass state into model, obtain action, value, entropy and new_log_probs
 				dist, value = self.model(state)
 				entropy = dist.entropy().mean()
 				new_log_probs = dist.log_prob(action)
 
+				# calculate surrogate policy loss
 				ratio = (new_log_probs - old_log_probs).exp()
 				surr1 = ratio * advantage
 				surr2 = torch.clamp(ratio, 1.0 - self.ppo_clip, 1.0 + self.ppo_clip) * advantage
-
 				actor_loss  = - torch.min(surr1, surr2).mean()
+
+				# calculate MSE value loss 
 				critic_loss = (return_ - value).pow(2).mean()
 
 				loss = 0.5 * critic_loss + actor_loss - 0.001 * entropy
 
+				# backpropogate tota loss
 				self.optimizer.zero_grad()
 				loss.backward()
-				nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clip)
-                
 				self.optimizer.step()
 
 
 	def learn(self):
-
+		""" 
+		Collects a batch of transistion for environment
+		Calculate returns using GAE function
+		Calculate advantage = returns - values
+		"""
 		log_probs = []
 		values    = []
 		states    = []
@@ -132,22 +147,26 @@ class Agent():
 		
 		env_info = self.env.reset(train_mode=True)[self.brain_name]
 		state = env_info.vector_observations
-
+		
+		# Collect batch of transitions from enviroment 
 		for _ in tqdm(range(self.ppo_steps)):
+			
+			# get actions from model
 			state = torch.FloatTensor(state).to(device)
 			dist, value = self.model(state)
 
 			action = dist.sample()
-			#print(action)
+
+			# send all actions to tne environment
 			env_info = self.env.step(action.cpu().detach().numpy())[self.brain_name]
 		
-			#env_info = env.step(action)[brain_name]           # send all actions to tne environment
 			next_state = env_info.vector_observations         # get next state (for each agent)
 			reward = env_info.rewards                         # get reward (for each agent)
 			done = np.array([1 if d else 0 for d in env_info.local_done])
 			
 			log_prob = dist.log_prob(action)
 			
+			# Append values to batch
 			log_probs.append(log_prob)
 			values.append(value)
 			rewards.append(torch.FloatTensor(reward).unsqueeze(1).to(device))
@@ -158,11 +177,15 @@ class Agent():
 			
 			state = next_state
 			self.frame_idx += 1
-				
+		
+
+		# Calculate returns 		
 		next_state = torch.FloatTensor(next_state).to(device)
 		_, next_value = self.model(next_state)
 		returns = self.compute_gae(next_value, rewards, masks, values)
 
+
+		# Calculate advantage
 		returns   = torch.cat(returns).detach()
 		log_probs = torch.cat(log_probs).detach()
 		values    = torch.cat(values).detach()
@@ -173,6 +196,7 @@ class Agent():
 		advantage -= advantage.mean()
 		advantage /= (advantage.std() + 1e-8)
 
+		# Update PPO with this batch
 		self.ppo_update(states, actions, log_probs, returns, advantage)
 		self.episode += 1
  
