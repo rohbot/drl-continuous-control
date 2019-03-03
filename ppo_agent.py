@@ -1,3 +1,5 @@
+#This agent is based off code from https://github.com/higgsfield/RL-Adventure-2/blob/master/3.ppo.ipynb
+
 import numpy as np
 import torch
 import torch.nn as nn
