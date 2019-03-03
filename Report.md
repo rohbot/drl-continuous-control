@@ -50,9 +50,10 @@ Compared to other policy gradient methods, PPO has a unique objective function t
 	PPO_EPOCHS          = 10
 	TARGET_REWARD       = 30
 
-This leads to an agent that can achieve an average score of 30 over 100 episodes after 146 episodes
 
 ## Results
+
+The agent can achieve an average score of 30 over 100 episodes after 146 episodes
 
 ![Plot of Rewards](data/images/ppo-training.png)
 
@@ -60,7 +61,7 @@ This leads to an agent that can achieve an average score of 30 over 100 episodes
 ## Ideas for Future Work
 ---
 
-* Better tuning of hyperparameters, using different activation function for actor such a TanH
+* Better tuning of hyperparameters, using different activation function for actor such a tanH
 
 * Implement an evolutionary system or genetic algorithm based on this [implementation](https://github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On/tree/master/Chapter16). I initally modified this code to run with the Reacher environment [ga_train.py](archive/ga_train.py). However even after several days of training it failed to converge so went on to implement this PPO algorithm. Given more time I would like to delve deeper into this GA/ES approach with more tweaking of learning rates and possibly a better implemetation of cross-over and parent selection.
 
