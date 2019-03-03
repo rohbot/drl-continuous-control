@@ -33,16 +33,16 @@ The observation space consists of 33 variables corresponding to position, rotati
     - Windows (64-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/Reacher_Windows_x86_64.zip)
 
 ### Training Agent
-To start training, run [*ppo_train.py*](ppo_train.py) in terminal window:
+To start training, run [*train.py*](train.py) in terminal window:
 
-`python ppo_train.py`
+`python train.py`
 
 
 ### Running Trained Agent
 
-To run trained agent, run [*ppo_play.py*](ppo_play.py) in terminal window:
+To run trained agent, run [*play.py*](play.py) in terminal window:
 
-`python ppo_play.py`
+`python play.py`
 
 Trained model [weights](models/ppo_trained.pth)  are included to see the agent solved the Unity ML Reacher Environment. 
 
