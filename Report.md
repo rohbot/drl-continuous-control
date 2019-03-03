@@ -12,7 +12,7 @@ The implementation split into a few smaller modules:
 * model.py - Neural Network model implemented with PyTorch
 * ppo_agent.py - PPO agent implementation as described in [paper](https://arxiv.org/abs/1707.06347) mentioned above
 * ppo_train.py - imports all required modules and allows the enviroment to be explored and the agent trained
-* Continuous_Control.ipynb - Runs an Agent using pre-trained weights from Navigation.ipynb
+* ppo_play.py - Runs an Agent using pre-trained weights from ppo_train.py
 
 ## Learning Algorithm
 
@@ -61,9 +61,9 @@ The initial parameters were set to the same values as in [Deep_Q_Network_Solutio
 	PPO_EPOCHS          = 10
 	TARGET_REWARD       = 30
 
-This leads to an agent that can achieve an average score of 30 over 100 episodes after 467 episodes
+This leads to an agent that can achieve an average score of 30 over 100 episodes after 153 episodes
 
-![Plot of Rewards](ppo-30.png)
+![Plot of Rewards](ppo-training.png)
 
 
 

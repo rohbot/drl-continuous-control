@@ -39,13 +39,12 @@ To start training, run [*ppo_train.py*](ppo_train.py) in terminal window:
 
 
 ### Running Trained Agent
-To see a trained agent in action simply open [*Continuous_Control.ipynb*](Continuous_Control.ipynb) in Jupyter Notebook and follow the instructions there:
 
-Start Jupyter Notebook
+To run trained agent, run [*ppo_play.py*](ppo_play.py) in terminal window:
 
-`jupyter notebook`
+`python ppo_play.py`
 
-Trained model weights are included to see the agent solved the Unity ML Reacher Environment. 
+Trained model [weights](models/ppo_trained.pth)  are included to see the agent solved the Unity ML Reacher Environment. 
 
 
 
